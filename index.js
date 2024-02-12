@@ -1,17 +1,36 @@
 const express = require("express");
 const cors = require("cors");
-const app = express();
-const port = 5000;
+require("dotenv").config();
 
+const app = express();
 app.use(cors());
 
-app.get("/auth/test", (req, res) => {
-  // sendStatus отправляет указанный статус в ответ
-  // для отправки других данных используется JSON
-  // формат отправки res.json({"какие-то данные"})
-  res.sendStatus(200);
-});
+app.use(express.json());
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+const PORT = process.env.PORT || 5000;
+
+if (!PORT) {
+  throw new Error(
+    ".env Error: Variable 'PORT'  is not defined or does not exist"
+  );
+}
+
+async function start() {
+  try {
+    app.listen(PORT, () => {
+      console.log("Server has been started on port:", PORT);
+    });
+  } catch (e) {
+    console.log("Server error: ", e);
+    process.exit(1);
+  }
+}
+
+start();
+
+app.put("/api/v1/feedback", async (req, res) => {
+  const { token, feedbackSourceIP } = req.headers;
+  const {name, phone, question} = req.body;
+  
+  res.json({ success: true, message: "Feedback received successfully" });
 });

@@ -11,7 +11,6 @@ git clone https://github.com/TM-OBD/obd-back
 ```shell
 cd <project-root-directory>
 npm install
-yarn install
 ```
 or
 ```shell

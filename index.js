@@ -48,7 +48,7 @@ const get_html_message = (name, phone, question) => {
 
 const send_mail = (name, phone, question) => {
   const accessToken = OAuthClient.getAccessToken();
-  const recipient = "zermankarim@gmail.com"; // Needs at admin mail
+  const recipient = "efim.yakunin@gmail.com"; // Needs at admin mail
   const transport = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -81,13 +81,15 @@ const send_mail = (name, phone, question) => {
 };
 
 app.put("/api/v1/feedback", async (req, res) => {
-  const { token, feedbackSourceIP } = req.headers;
+  const feedbackSourceIP= req.headers["feedback-source-ip"];
+  const {token} = req.headers;
   const { name, phone, question } = req.body;
-
-  try {
+  if(name && phone && question) {
     send_mail(name, phone, question);
     return res.json({ success:true, message: "Feedback was received successfully!" });
-  } catch (e) {
-    return res.json({ success:false, message: "Error on '/api/v1/feedback' route", e });
   }
+    
+  
+    return res.json({ success:false, message: "Error on '/api/v1/feedback' route", e });
+
 });

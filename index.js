@@ -40,15 +40,16 @@ OAuthClient.setCredentials({ refresh_token: process.env.GREFRESH_TOKEN });
 const get_html_message = (name, phone, question) => {
   return `
   <h3>A new user have some question for us!</h3>
-  <p><i>Name:</i> ${name}</p>
-  <p><i>Phone number:</i> ${phone}</p>
-  <p><b>${question}</b></p>
+  <p>Name: <i>${name}</i></p>
+  <p>Phone number: <i><a href="tel:${phone}">${phone}</a></i></p>
+  <hr>
+  <p>${question}</p>
   `;
 };
 
-const send_mail = (name, phone, question) => {
+const send_mail = (name, phone, question, res) => {
   const accessToken = OAuthClient.getAccessToken();
-  const recipient = "efim.yakunin@gmail.com"; // Needs at admin mail
+  const recipient = "support@isyb.com.ua"; // Needs at admin mail
   const transport = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -61,7 +62,7 @@ const send_mail = (name, phone, question) => {
     },
   });
   const mailOptions = {
-    from: `OBD QUESTION<${process.env.GMAIL}>`,
+    from: `OBD QUESTION`,
     to: recipient,
     subject: "A new question from OBD Web",
     html: get_html_message(name, phone, question),
@@ -70,26 +71,23 @@ const send_mail = (name, phone, question) => {
   return transport.sendMail(mailOptions, (error, result) => {
     if (error) {
       console.log("Error: ", error);
+      let message = "Error on 'send_email' function";
       transport.close();
-      return { success: false, error };
+      return res.json({ success: false, message, result: error });
     } else {
       console.log("Success", result);
       transport.close();
-      return { success: true, result };
+      message = "Feedback was received successfully!";
+      return res.json({ success: true, message, result });
     }
   });
 };
 
 app.put("/api/v1/feedback", async (req, res) => {
-  const feedbackSourceIP= req.headers["feedback-source-ip"];
-  const {token} = req.headers;
+  const feedbackSourceIP = req.headers["feedback-source-ip"];
+  const { token } = req.headers;
   const { name, phone, question } = req.body;
-  if(name && phone && question) {
-    send_mail(name, phone, question);
-    return res.json({ success:true, message: "Feedback was received successfully!" });
+  if (name && phone && question) {
+    send_mail(name, phone, question, res);
   }
-    
-  
-    return res.json({ success:false, message: "Error on '/api/v1/feedback' route", e });
-
 });

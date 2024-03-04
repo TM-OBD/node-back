@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
+const axios = require('axios')
 
 const OAuth = google.auth.OAuth2;
 const app = express();
@@ -49,12 +50,12 @@ const get_html_message = (name, phone, question) => {
 
 const send_mail = (name, phone, question, res) => {
   const accessToken = OAuthClient.getAccessToken();
-  const recipient = "support@isyb.com.ua"; // Needs at admin mail
+  const recipient = process.env.GMAIL_RECIPIENT; // Needs an admin mail
   const transport = nodemailer.createTransport({
     service: "gmail",
     auth: {
       type: "OAuth2",
-      user: process.env.GMAIL,
+      user: process.env.GMAIL_SENDER,
       clientId: process.env.GOAUTH_CLIENT_ID,
       clientSecret: process.env.GOAUTH_CLIENT_SECRET,
       refreshToken: process.env.GREFRESH_TOKEN,
@@ -84,10 +85,13 @@ const send_mail = (name, phone, question, res) => {
 };
 
 app.put("/api/v1/feedback", async (req, res) => {
-  const feedbackSourceIP = req.headers["feedback-source-ip"];
-  const { token } = req.headers;
+  const feedbackSourceIP = req.headers["feedback-source-ip"]; // For future
+  const { token } = req.headers; // For future
   const { name, phone, question } = req.body;
   if (name && phone && question) {
     send_mail(name, phone, question, res);
+  }
+  else {
+    return res.json({success:false, message: "Some field(-s) is(are) undefined"})
   }
 });
